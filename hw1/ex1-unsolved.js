@@ -22,7 +22,7 @@ var is_down_text = ": {1-fg}DOWN{/1-fg}";
 var needs_reboot_text = " {1-fg}(requires administrator reboot?){/1-fg}";
 var ping_text = "- Current ping: {3-fg}";
 var ping_close_text = " ms{/3-fg}";
-var no_ping_text = "- Current ping: {2-fg}0 ms{/2-fg}";
+var no_ping_text = "- Current ping: {12-fg}NONE{/12-fg}";
 
 //this is the function where most of your work should go into
 function your_function_to_display_errors(message, level) {	
