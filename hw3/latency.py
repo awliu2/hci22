@@ -9,10 +9,10 @@ def main():
     with open('out.csv', "w") as f:
         for i in range(30):
             sys.stdout.flush()
-            sys.stdout.write("\r Ready?")
-            time.sleep(uniform(1,2))    
+            sys.stdout.write("\r {}: Ready?".format(i + 1))
+            time.sleep(uniform(1,2))
             tstart = datetime.now()
-            reaction = input("\r press enter")
+            input("\r press enter")
             tend = datetime.now()
             os.system('clear')
             
