@@ -28,6 +28,7 @@
 #native imports
 import math
 import random
+from re import I
 import pyglet
 
 import sys
@@ -39,6 +40,22 @@ from gtts import gTTS
 from pythonosc import osc_server
 from pythonosc import dispatcher
 from pythonosc import udp_client
+
+# Player: speech recognition library
+# -------------------------------------#
+# threading so that listenting to speech would not block the whole program
+import threading
+# speech recognition (default using google, requiring internet)
+import speech_recognition as sr
+# -------------------------------------#
+
+# Player: pitch & volume detection
+# -------------------------------------#
+import aubio
+import numpy as num
+import pyaudio
+import wave
+
 
 mode = ''
 debug = False
@@ -167,13 +184,25 @@ if mode == 'player':
     client = udp_client.SimpleUDPClient(host_ip, host_port)
     print("> connected to server at "+host_ip+":"+str(host_port))
 
+is_playing = threading.Lock()
+
+def ball_locator(pitch, time):
+    global is_playing
+    if is_playing.locked(): pass
+    else:
+        def start_sound(pitch,time):
+            global is_playing
+            with is_playing:
+                player.play_wave(synth.generate_constant_wave(pitch, time))
+        threading.Thread(target=lambda: start_sound(pitch, time)).start()
+
 # functions receiving messages from host
 def on_receive_ball(address, *args):
     # print("> ball position: (" + str(args[0]) + ", " + str(args[1]) + ")")
     y_pos = args[1]
     pitch = (600 - y_pos) / 1.5
     # print(f"pitch: {pitch}")
-    player.play_wave(synth.generate_constant_wave(int(pitch), 0.03))
+    ball_locator(pitch, 0.2)
     pass
 
 def on_receive_paddle(address, *args):
@@ -216,20 +245,7 @@ dispatcher_player.map("/scores", on_receive_scores)
 dispatcher_player.map("/level", on_receive_level)
 # -------------------------------------#
 
-# Player: speech recognition library
-# -------------------------------------#
-# threading so that listenting to speech would not block the whole program
-import threading
-# speech recognition (default using google, requiring internet)
-import speech_recognition as sr
-# -------------------------------------#
 
-# Player: pitch & volume detection
-# -------------------------------------#
-import aubio
-import numpy as num
-import pyaudio
-import wave
 
 # PyAudio object.
 p = pyaudio.PyAudio()
@@ -269,9 +285,10 @@ def listen_to_speech():
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
             # instead of `r.recognize_google(audio)`
             recog_results = r.recognize_google(audio)
+            res_arr = recog_results.split()
             print("[speech recognition] Google Speech Recognition thinks you said \"" + recog_results + "\"")
             # if recognizing quit and exit then exit the program
-            if recog_results == "play" or recog_results == "start":
+            if "play" in res_arr or "start" in res_arr:
                 client.send_message('/g', 1)
 
             if recog_results == "easy":
@@ -304,7 +321,7 @@ def sense_microphone():
     while not quit:
         # print("hello world")
         data = stream.read(1024,exception_on_overflow=False)
-        samples = num.fromstring(data,
+        samples = num.frombuffer(data,
             dtype=aubio.float_type)
         # Compute the pitch of the  microphone input
         pitch = pDetection(samples)[0]
