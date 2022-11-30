@@ -34,8 +34,7 @@ import sys
 from playsound import playsound
 import argparse
 from synthesizer import Player, Synthesizer, Waveform
-
-
+from gtts import gTTS
 
 from pythonosc import osc_server
 from pythonosc import dispatcher
@@ -97,8 +96,20 @@ def on_receive_game_level(address, args, l):
     level = l
     if (client_1 != None):
         client_1.send_message("/level", l)
+        if level == 1:
+            playsound("easy.mp3")
+        elif level == 2:
+            playsound("hard.mp3")
+        elif level == 3:
+            playsound("insane.mp3")
     if (client_2 != None):
         client_2.send_message("/level", l)
+        if level == 1:
+            playsound("easy.mp3")
+        elif level == 2:
+            playsound("hard.mp3")
+        elif level == 3:
+            playsound("insane.mp3")
 
 def on_receive_game_start(address, args, g):
     global game_start
@@ -158,7 +169,7 @@ if mode == 'player':
 
 # functions receiving messages from host
 def on_receive_ball(address, *args):
-    print("> ball position: (" + str(args[0]) + ", " + str(args[1]) + ")")
+    # print("> ball position: (" + str(args[0]) + ", " + str(args[1]) + ")")
     y_pos = args[1]
     pitch = (600 - y_pos) / 1.5
     # print(f"pitch: {pitch}")
@@ -166,12 +177,13 @@ def on_receive_ball(address, *args):
     pass
 
 def on_receive_paddle(address, *args):
-    print("> paddle position: (" + str(args[0]) + ", " + str(args[1]) + ")")
+    # print("> paddle position: (" + str(args[0]) + ", " + str(args[1]) + ")")
     pass
 
 def on_receive_hitpaddle(address, *args):
     # example sound
     hit()
+    playsound("dong.mp3", False)
     print("> ball hit at paddle " + str(args[0]) )
 
 def on_receive_ballout(address, *args):
@@ -183,7 +195,13 @@ def on_receive_ballbounce(address, *args):
     print("> ball bounced on up/down side: " + str(args[0]) )
 
 def on_receive_scores(address, *args):
+    print("playing sounds now")
+    new_score_speech = "scores now: " + str(args[0]) + " vs. " + str(args[1])
+    score_tts = gTTS(text=new_score_speech, lang='en', slow=False)
+    score_tts.save("score.mp3")
+    playsound("score.mp3")
     print("> scores now: " + str(args[0]) + " vs. " + str(args[1]))
+
 
 def on_receive_level(address, *args):
     print("> level now: " + str(args[0]))
@@ -434,8 +452,10 @@ class Model(object):
         if cross0 and -25 < b.y - p0.y < 25:
             if (client_1 != None):
                 client_1.send_message("/hitpaddle", 1)
+                playsound("ding.mp3")
             if (client_2 != None):
                 client_2.send_message("/hitpaddle", 1)
+                playsound("ding.mp3")
             if debug: print("hit at "+str(self.i))
             illegal_movement = p0.x + 2*b.TO_SIDE - b.x
             b.x = p0.x + 2*b.TO_SIDE + illegal_movement
@@ -445,8 +465,10 @@ class Model(object):
         elif cross1 and -25 < b.y - p1.y < 25:
             if (client_1 != None):
                 client_1.send_message("/hitpaddle", 2)
+                playsound("dong.mp3")
             if (client_2 != None):
                 client_2.send_message("/hitpaddle", 2)
+                playsound("dong.mp3")
             if debug: print("hit at "+str(self.i))
             illegal_movement = p1.x - 2*b.TO_SIDE - b.x
             b.x = p1.x - 2*b.TO_SIDE + illegal_movement

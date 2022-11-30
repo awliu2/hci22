@@ -5,5 +5,5 @@ PyAudio==0.2.11
 pyglet==1.5.21
 synthesizer==0.2.0
 SpeechRecognition==3.8.1
-python-osc==1.8.0
 gTTS==2.3.0
+python-osc==1.8.0
