@@ -688,18 +688,18 @@ if mode == 'player':
     microphone_thread.start()
     # -------------------------------------#
     # thread to play sound based on ball location
-    # if client_1:
-    #     sound_thread1 = threading.Thread(target=on_receive_ball, args=[1])
-    #     sound_thread1.daemon = True
-    #     sound_thread1.start()
-    # if client_2:
-    #     sound_thread2 = threading.Thread(target=on_receive_ball, args=[2])
-    #     sound_thread2.daemon = True
-    #     sound_thread2.start()
+    if client_1:
+        sound_thread1 = threading.Thread(target=on_receive_ball, args=[1])
+        sound_thread1.daemon = True
+        sound_thread1.start()
+    if client_2:
+        sound_thread2 = threading.Thread(target=on_receive_ball, args=[2])
+        sound_thread2.daemon = True
+        sound_thread2.start()
 
-    sound_thread2 = threading.Thread(target=on_receive_ball, args=[2])
-    sound_thread2.daemon = True
-    sound_thread2.start()
+    # sound_thread2 = threading.Thread(target=on_receive_ball, args=[2])
+    # sound_thread2.daemon = True
+    # sound_thread2.start()
 
 # Host: pygame starts
 if mode == 'host':
