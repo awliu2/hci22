@@ -28,8 +28,6 @@
 #native imports
 import math
 import random
-from re import I
-from click import pass_context
 import pyglet
 
 import sys
@@ -235,6 +233,13 @@ def on_receive_scores(address, *args):
 
 def on_receive_level(address, *args):
     print("> level now: " + str(args[0]))
+    if args[0] == 1:
+        playsound("easy.mp3")
+    if args[0] == 2:
+        playsound("hard.mp3")
+    if args[0] == 3:
+        playsound("insane.mp3")
+
 
 dispatcher_player = dispatcher.Dispatcher()
 dispatcher_player.map("/ball", on_receive_ball)
@@ -301,7 +306,7 @@ def listen_to_speech():
             if "insane" in res_arr:
                 client.send_message('/l', 3)
 
-            if "pause" in res_arr:
+            if "pause" in res_arr or "stop" in res_arr:
                 client.send_message('/g', 0)
             
             if recog_results == "quit" or recog_results == "exit":
