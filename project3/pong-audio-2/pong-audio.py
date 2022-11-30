@@ -29,9 +29,13 @@
 import math
 import random
 import pyglet
+
 import sys
 from playsound import playsound
 import argparse
+from synthesizer import Player, Synthesizer, Waveform
+
+
 
 from pythonosc import osc_server
 from pythonosc import dispatcher
@@ -142,6 +146,11 @@ dispatcher_2.map("/c", on_receive_connection_2, "c")
 def hit():
     playsound('hit.wav', False)
 
+player = Player()
+player.open_stream()
+synth = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=0.5, use_osc2=False)
+# my_pitch = 200
+# player.play_wave(synth.generate_chord([my_pitch], 10))
 # used to send messages to host
 if mode == 'player':
     client = udp_client.SimpleUDPClient(host_ip, host_port)
@@ -150,6 +159,10 @@ if mode == 'player':
 # functions receiving messages from host
 def on_receive_ball(address, *args):
     print("> ball position: (" + str(args[0]) + ", " + str(args[1]) + ")")
+    y_pos = args[1]
+    pitch = (600 - y_pos) / 1.5
+    # print(f"pitch: {pitch}")
+    player.play_wave(synth.generate_constant_wave(int(pitch), 0.03))
     pass
 
 def on_receive_paddle(address, *args):
@@ -242,6 +255,22 @@ def listen_to_speech():
             # if recognizing quit and exit then exit the program
             if recog_results == "play" or recog_results == "start":
                 client.send_message('/g', 1)
+
+            if recog_results == "easy":
+                client.send_message('/l', 1)
+            
+            if recog_results == "hard":
+                client.send_message('/l', 2)
+
+            if recog_results == "insane":
+                client.send_message('/l', 3)
+
+            if recog_results == "pause":
+                client.send_message('/g', 0)
+            
+            if recog_results == "quit" or recog_results == "exit":
+                quit = True
+                exit(0)
         except sr.UnknownValueError:
             print("[speech recognition] Google Speech Recognition could not understand audio")
         except sr.RequestError as e:
@@ -255,18 +284,20 @@ def sense_microphone():
     global quit
     global debug
     while not quit:
+        # print("hello world")
         data = stream.read(1024,exception_on_overflow=False)
         samples = num.fromstring(data,
             dtype=aubio.float_type)
-
-        # Compute the pitch of the microphone input
+        # Compute the pitch of the  microphone input
         pitch = pDetection(samples)[0]
         # Compute the energy (volume) of the mic input
-        volume = num.sum(samples**2)/len(samples)
+        volume_float = num.sum(samples**2)/len(samples)
         # Format the volume output so that at most
         # it has six decimal numbers.
-        volume = "{:.6f}".format(volume)
+        volume = "{:.6f}".format(volume_float)
 
+        if volume_float > 0.0001:
+            client.send_message('/p', max(0, 500 - int(pitch * 1.5)))
         # uncomment these lines if you want pitch or volume
         if debug:
             print("pitch "+str(pitch)+" volume "+str(volume))
@@ -656,6 +687,15 @@ if mode == 'player':
     microphone_thread.daemon = True
     microphone_thread.start()
     # -------------------------------------#
+    # thread to play sound based on ball location
+    if client_1:
+        sound_thread1 = threading.Thread(target=on_receive_ball, args=[1])
+        sound_thread1.daemon = True
+        sound_thread1.start()
+    if client_2:
+        sound_thread2 = threading.Thread(target=on_receive_ball, args=[1])
+        sound_thread2.daemon = True
+        sound_thread2.start()
 
 # Host: pygame starts
 if mode == 'host':
