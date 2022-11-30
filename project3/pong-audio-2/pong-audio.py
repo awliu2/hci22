@@ -693,7 +693,7 @@ if mode == 'player':
         sound_thread1.daemon = True
         sound_thread1.start()
     if client_2:
-        sound_thread2 = threading.Thread(target=on_receive_ball, args=[1])
+        sound_thread2 = threading.Thread(target=on_receive_ball, args=[2])
         sound_thread2.daemon = True
         sound_thread2.start()
 
