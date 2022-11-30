@@ -148,7 +148,7 @@ def hit():
 
 player = Player()
 player.open_stream()
-synth = Synthesizer(osc1_waveform=Waveform.sine, osc1_volume=0.5, use_osc2=False)
+synth = Synthesizer(osc1_waveform=Waveform.triangle, osc1_volume=0.3, use_osc2=False)
 # my_pitch = 200
 # player.play_wave(synth.generate_chord([my_pitch], 10))
 # used to send messages to host
@@ -297,7 +297,7 @@ def sense_microphone():
         volume = "{:.6f}".format(volume_float)
 
         if volume_float > 0.0001:
-            client.send_message('/p', max(0, 500 - int(pitch * 1.5)))
+            client.send_message('/p', max(0, 600 - int(pitch * 1.5)))
         # uncomment these lines if you want pitch or volume
         if debug:
             print("pitch "+str(pitch)+" volume "+str(volume))
