@@ -15,9 +15,9 @@
 
     HOW TO CONNECT TO HOST AS PLAYER 1
     > python3 pong-audio.py player --host_ip 127.0.0.1 --host_port 5005 --player_ip 127.0.0.1 --player_port 5007
-
+        python3 pong-audio.py player --host_ip 10.150.13.245 --host_port 5005 --player_ip 10.150.13.245 --player_port 5007
     HOW TO CONNECT TO HOST AS PLAYER 2
-    > python3 pong-audio.py player --host_ip 127.0.0.1 --host_port 5006 --player_ip 127.0.0.1 --player_port 5008
+    > python3 pong-audio.py player --host_ip 10.150.13.245 --host_port 5006 --player_ip <IP HERE> --player_port 5008
 
     about IP and ports: 127.0.0.1 means your own computer, change it to play across computer under the same network. port numbers are picked to avoid conflits.
 
@@ -29,6 +29,7 @@
 import math
 import random
 from re import I
+from click import pass_context
 import pyglet
 
 import sys
@@ -212,7 +213,7 @@ def on_receive_paddle(address, *args):
 def on_receive_hitpaddle(address, *args):
     # example sound
     hit()
-    playsound("dong.mp3", False)
+    playsound("dong.mp3")
     print("> ball hit at paddle " + str(args[0]) )
 
 def on_receive_ballout(address, *args):
@@ -288,19 +289,19 @@ def listen_to_speech():
             res_arr = recog_results.split()
             print("[speech recognition] Google Speech Recognition thinks you said \"" + recog_results + "\"")
             # if recognizing quit and exit then exit the program
-            if "play" in res_arr or "start" in res_arr:
+            if "play" in res_arr or "start" in res_arr or "begin" in res_arr:
                 client.send_message('/g', 1)
 
-            if recog_results == "easy":
+            if "easy" in res_arr:
                 client.send_message('/l', 1)
             
-            if recog_results == "hard":
+            if "hard" in res_arr:
                 client.send_message('/l', 2)
 
-            if recog_results == "insane":
+            if "insane" in res_arr:
                 client.send_message('/l', 3)
 
-            if recog_results == "pause":
+            if "pause" in res_arr:
                 client.send_message('/g', 0)
             
             if recog_results == "quit" or recog_results == "exit":
@@ -469,10 +470,8 @@ class Model(object):
         if cross0 and -25 < b.y - p0.y < 25:
             if (client_1 != None):
                 client_1.send_message("/hitpaddle", 1)
-                playsound("ding.mp3")
             if (client_2 != None):
                 client_2.send_message("/hitpaddle", 1)
-                playsound("ding.mp3")
             if debug: print("hit at "+str(self.i))
             illegal_movement = p0.x + 2*b.TO_SIDE - b.x
             b.x = p0.x + 2*b.TO_SIDE + illegal_movement
@@ -482,10 +481,8 @@ class Model(object):
         elif cross1 and -25 < b.y - p1.y < 25:
             if (client_1 != None):
                 client_1.send_message("/hitpaddle", 2)
-                playsound("dong.mp3")
             if (client_2 != None):
                 client_2.send_message("/hitpaddle", 2)
-                playsound("dong.mp3")
             if debug: print("hit at "+str(self.i))
             illegal_movement = p1.x - 2*b.TO_SIDE - b.x
             b.x = p1.x - 2*b.TO_SIDE + illegal_movement
